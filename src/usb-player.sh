@@ -4,7 +4,7 @@
 # and shows a fallback image when no video is playing.
 
 MOUNT_BASE="/media/$USER"    # adjust if your system auto-mounts elsewhere
-CHECK_INTERVAL=5             # seconds between checks
+CHECK_INTERVAL=1             # seconds between checks
 # FALLBACK_IMAGE="$HOME/Pictures/fallback.png"  # change to your image path
 FALLBACK_IMAGE="$HOME/.config/usb-video-player/splash.png"
 
