@@ -76,7 +76,7 @@ fi
 # Make sure previous socket is removed
 rm -f "$IPC_SOCKET"
 
-mpv --fs --loop "$SPLASH" --no-terminal --input-ipc-server="$IPC_SOCKET" &
+mpv --fs --loop "$SPLASH" --input-ipc-server="$IPC_SOCKET" &
 MPV_PID=$!
 echo "Started mpv splash (PID $MPV_PID)"
 
