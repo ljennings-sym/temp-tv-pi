@@ -12,6 +12,8 @@ RestartSec=2
 Environment=DISPLAY=:0
 StandardOutput=journal
 StandardError=journal
+StandardInput=tty
+TTYPath=/dev/tty1
 
 [Install]
 WantedBy=multi-user.target
