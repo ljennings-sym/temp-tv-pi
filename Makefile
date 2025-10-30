@@ -10,6 +10,16 @@ install:
 		exit 1; \
 	fi \
 
+	@if ! command -v mpv >/dev/null 2>&1; then \
+		echo "Error: mpv is not installed. Please install it first."; \
+		exit 1; \
+	fi
+
+	@if ! command -v socat >/dev/null 2>&1; then \
+		echo "Error: socat is not installed. Please install it first."; \
+		exit 1; \
+	fi
+
 	@echo "Installing videoplayerd..."
 
 #	installing the script to /usr/local/bin and the fallback screen to /usr/local/share
