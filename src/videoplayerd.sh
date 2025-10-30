@@ -41,13 +41,27 @@ switch_to_video() {
 # udev only triggers when the usb is plugged in. If a usb drive is plugged in before the pi powers on, then udev wont trigger. 
 # This checks if there is a USB storage device detected, and mounts it if found.
 
-# If USB is already plugged in at boot, mount it
-if lsblk -o MOUNTPOINT | grep -q "$MEDIA_DIR"; then
-    echo "USB already mounted at boot"
-else
-    if blkid /dev/sda1 >/dev/null 2>&1; then
-        echo "USB detected at boot — mounting..."
-        mount /dev/sda1 "$MEDIA_DIR" || echo "Mount failed"
+
+USB_DEV=$(
+  lsblk -rno NAME,TYPE,TRAN | awk '$2=="disk" && $3=="usb" {print "/dev/"$1; exit}'
+)
+
+
+# need to check if the usb device has any partitions, or if it should just be mounted as a raw disk
+if [ -n "$USB_DEV" ]; then
+    # Determine what to mount
+    if lsblk "$USB_DEV" -no NAME,TYPE | grep -q "part"; then
+        # has partitions, mount first one
+        USB_PART=$(lsblk -rno NAME,TYPE "$USB_DEV" | awk '$2=="part"{print "/dev/"$1; exit}')
+        MOUNT_TARGET="$USB_PART"
+    else
+        # no partitions, mount disk directly
+        MOUNT_TARGET="$USB_DEV"
+    fi
+
+    # mount if not mounted
+    if ! mountpoint -q "$MEDIA_DIR"; then
+        mount "$MOUNT_TARGET" "$MEDIA_DIR"
     fi
 fi
 
