@@ -36,6 +36,26 @@ switch_to_video() {
 }
 
 ########################################
+# Initial USB mount check
+########################################
+# udev only triggers when the usb is plugged in. If a usb drive is plugged in before the pi powers on, then udev wont trigger. 
+# This checks if there is a USB storage device detected, and mounts it if found.
+
+# If USB is already plugged in at boot, mount it
+if lsblk -o MOUNTPOINT | grep -q "$MEDIA_DIR"; then
+    echo "USB already mounted at boot"
+else
+    if blkid /dev/sda1 >/dev/null 2>&1; then
+        echo "USB detected at boot — mounting..."
+        mount /dev/sda1 "$MEDIA_DIR" || echo "Mount failed"
+    fi
+fi
+
+
+
+
+
+########################################
 # Start mpv with splash
 ########################################
 
