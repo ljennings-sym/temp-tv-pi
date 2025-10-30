@@ -79,6 +79,8 @@ rm -f "$IPC_SOCKET"
 mpv --fs --loop "$SPLASH" --no-terminal --input-ipc-server="$IPC_SOCKET" &
 MPV_PID=$!
 echo "Started mpv splash (PID $MPV_PID)"
+sleep 1
+
 
 ########################################
 # Main USB polling loop
