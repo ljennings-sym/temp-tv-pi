@@ -1,0 +1,17 @@
+[Unit]
+Description=USB Video Autoplay Service
+After=local-fs.target network.target
+Wants=local-fs.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/videoplayerd
+WorkingDirectory=/usr/local/share/videoplayerd
+Restart=always
+RestartSec=2
+Environment=DISPLAY=:0
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

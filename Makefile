@@ -1,49 +1,51 @@
-PREFIX := $(HOME)/.config/usb-video-player
-AUTOSTART := $(HOME)/.config/autostart
-SCRIPT := usb-player.sh
-SPLASH := splash.png
-DESKTOP_FILE := usb-player.desktop
+PREFIX=/usr/local
+BINDIR=$(PREFIX)/bin
+SHAREDIR=$(PREFIX)/share/videoplayerd
+SYSTEMD=/lib/systemd/system
+UDEVDIR=/etc/udev/rules.d
 
-all: install
+install:
+	@if [ "$$(id -u)" -ne 0 ]; then \
+		echo "Error: You must run this as root (sudo)"; \
+		exit 1; \
+	fi \
 
-install: $(PREFIX) $(AUTOSTART)
-	@echo "Installing USB Video Player..."
+	@echo "Installing videoplayerd..."
 
+#	installing the script to /usr/local/bin and the fallback screen to /usr/local/share
+	install -Dm755 src/videoplayerd.sh $(BINDIR)/videoplayerd
+	install -Dm644 assets/splash.png $(SHAREDIR)/splash.png
 
+#	Creating systemd service that contiuously polls the mount point to see if something is mounted, and plays any videos there if so
+	install -Dm644 system/videoplayerd.service $(SYSTEMD)/videoplayerd.service
 
-#   Copy script and splash image
-	@cp src/$(SCRIPT) $(PREFIX)/
-	@cp splash/$(SPLASH) $(PREFIX)/
+#	create udev rule so that any usb drives inserted are automatically mounted to /media/usb-player
+	install -Dm644 system/99-videoplayerd-automount.rules $(UDEVDIR)/99-videoplayerd-automount.rules
 
-#   Make script executable
-	@chmod +x $(PREFIX)/$(SCRIPT)
+#	reloading systemd and udev
+	systemctl daemon-reload
+	udevadm control --reload
 
-#   Generate autostart .desktop file with absolute path
-	@echo "[Desktop Entry]" > $(AUTOSTART)/$(DESKTOP_FILE)
-	@echo "Type=Application" >> $(AUTOSTART)/$(DESKTOP_FILE)
-	@echo "Name=USB Video Player" >> $(AUTOSTART)/$(DESKTOP_FILE)
-	@echo "Exec=$(PREFIX)/$(SCRIPT)" >> $(AUTOSTART)/$(DESKTOP_FILE)
-	@echo "X-GNOME-Autostart-enabled=true" >> $(AUTOSTART)/$(DESKTOP_FILE)
-	@echo "NoDisplay=false" >> $(AUTOSTART)/$(DESKTOP_FILE)
-	@echo "Comment=Automatically play USB videos" >> $(AUTOSTART)/$(DESKTOP_FILE)
-
-	@echo "Installation complete. Script will start automatically on login."
-
-
-$(PREFIX):
-#	Clean up any previous installations that were on the machine
-	@rm -rf $(PREFIX)
-	@mkdir -p $(PREFIX)
-
-$(AUTOSTART):
-# 	uninstall previous and create autostart if not present
-	@rm -f $(AUTOSTART)/$(DESKTOP_FILE)
-	@mkdir -p $(AUTOSTART)
-
-
+	@echo "Installation complete."
+	@echo "To enable service: sudo systemctl enable --now videoplayerd.service"
 
 uninstall:
-	@echo "Removing USB Video Player..."
-	@rm -rf $(PREFIX)
-	@rm -f $(AUTOSTART)/$(DESKTOP_FILE)
-	@echo "Uninstalled."
+	@if [ "$$(id -u)" -ne 0 ]; then \
+		echo "Error: You must run this as root (sudo)"; \
+		exit 1; \
+	fi \
+
+	@echo "Stopping service (if running)..."
+	-systemctl stop videoplayerd.service 2>/dev/null || true
+	-systemctl disable videoplayerd.service 2>/dev/null || true
+
+	@echo "\nRemoving installed files..."
+	rm -f $(BINDIR)/videoplayerd
+	rm -rf $(SHAREDIR)
+	rm -f $(SYSTEMD)/videoplayerd.service
+	rm -f $(UDEVDIR)/99-videoplayerd-automount.rules
+
+	@echo "\nReloading system..."
+	systemctl daemon-reload
+	udevadm control --reload
+	@echo "\nDone."
