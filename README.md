@@ -1,8 +1,8 @@
 # Raspberry Pi TV Player
 
-This project is designed to automatically play mp4 files from any USB drive inserted into a raspberry pi 4B. It uses mpv to display the video and a default splash screen. This project is implemented via a udev rule to automatically mount any usb drives inserted into the Pi and a systemd service to continually poll the mount directory for any video files.
+This project is designed to automatically play mp4 files from any USB drive inserted into a Raspberry Pi running Raspian Lite 64-bit (specifically developed on the version released for Pi 4Bs on 2025-10-01). It uses mpv to display the video and a default splash screen. This project is implemented via a udev rule to automatically mount any usb drives inserted into the Pi and a systemd service to continually poll the mount directory for any video files.
 
-Any media files on the USB drive should be placed into the root directory. See the `assets/test-footage` directory for an example video that is able to be played using the Pi. Note that depending on the .
+Any media files on the USB drive should be placed into the root directory. See the `assets/test-footage` directory for an example video that is able to be played using the Pi. Note that the smoothness of the video's playback can vary significantly based on the specific model of Raspberry Pi and video encoding of the video.
 
 When not playing a video, the Pi will display a splash screen, which is currently stored in the `assets` directory of this project. Edit it to change it, and then reinstall the program.
 
@@ -20,7 +20,11 @@ To uninstall, run the following command in the project root:
 sudo make uninstall
 ```
 
-Note that because this creates a systemd service that is constantly using the main display, you will not be able to easily type this if you are controlling the pi via an HDMI display. The uninstall command can be typed blind after login, but should be run from an ssh shell or similar.
+Note that because this creates a systemd service that is constantly using the main display, you will not be able to easily type this if you are controlling the pi via an HDMI display. The uninstall command can be typed blind after login, but should be run from an ssh shell, or an alternate TTY (not currently tested as of 10/30/2025).
+
+## Context
+
+This project was developed by Liam Jennings as part of a Co-op at symbotic during the fall of 2025.
 
 ## Dependencies
 
