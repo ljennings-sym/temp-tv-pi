@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
+shopt -s nullglob  # so empty glob expands to nothing
 
 ########################################
 # Configuration
@@ -15,6 +16,13 @@ IPC_SOCKET="/tmp/mpv-socket"                       # mpv IPC socket
 ########################################
 # Helper functions
 ########################################
+
+
+# Helper function to get all videos from MEDIA_DIR
+get_videos() {
+    local -n arr_ref=$1
+    mapfile -t arr_ref < <(ls "$MEDIA_DIR"/*.mp4 2>/dev/null)
+}
 
 # Send command to mpv via IPC socket
 mpv_cmd() {
@@ -66,6 +74,17 @@ if [ -n "$USB_DEV" ]; then
 fi
 
 
+INITIAL_VIDEO=$SPLASH
+VIDEO_PLAYING=""
+
+# STARTUP_VIDEOS=
+get_videos STARTUP_VIDEOS
+
+
+if [ -f "${STARTUP_VIDEOS[0]}" ]; then
+    INITIAL_VIDEO="${STARTUP_VIDEOS[0]}"
+    VIDEO_PLAYING="${STARTUP_VIDEOS[0]}"
+fi
 
 
 
@@ -76,7 +95,7 @@ fi
 # Make sure previous socket is removed
 rm -f "$IPC_SOCKET"
 
-mpv --fs --loop "$SPLASH" --no-terminal --input-ipc-server="$IPC_SOCKET" &
+mpv --fs --loop "$INITIAL_VIDEO" --no-terminal --input-ipc-server="$IPC_SOCKET" &
 MPV_PID=$!
 echo "Started mpv splash (PID $MPV_PID)"
 sleep 1
@@ -86,13 +105,11 @@ sleep 1
 # Main USB polling loop
 ########################################
 
-shopt -s nullglob  # so empty glob expands to nothing
-VIDEO_PLAYING=""
 
 while true; do
     if mountpoint -q "$MEDIA_DIR"; then
         # Find first MP4 on USB
-        videos=("$MEDIA_DIR"/*.mp4)
+        get_videos videos
         if [ -f "${videos[0]}" ] && [ "$VIDEO_PLAYING" != "${videos[0]}" ]; then
             echo "Playing video: ${videos[0]}"
             switch_to_video "${videos[0]}"
