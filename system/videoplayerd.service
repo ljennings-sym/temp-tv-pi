@@ -7,10 +7,12 @@ Wants=local-fs.target
 Type=simple
 ExecStart=/usr/local/bin/videoplayerd
 WorkingDirectory=/usr/local/share/videoplayerd
-Restart=always
+Restart=on-failure
 RestartSec=2
 StandardOutput=journal
 StandardError=journal
+StandardInput=tty
+TTYPath=/dev/tty1
 
 [Install]
 WantedBy=multi-user.target

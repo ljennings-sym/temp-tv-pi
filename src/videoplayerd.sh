@@ -43,6 +43,30 @@ switch_to_video() {
     mpv_cmd "{ \"command\": [\"loadfile\", \"$video\", \"replace\"] }"
 }
 
+
+
+########################################
+# Start keyboard listener so we can quit mpv
+########################################
+# Trap SIGTERM so the script can quit mpv cleanly
+trap 'echo "Stopping..."; mpv_cmd "{ \"command\": [\"quit\"] }"; exit 0' SIGTERM
+
+# Background key listener
+kbd_listener() {
+    while true; do
+        # read a single key without echo, from the current tty
+        read -rsn1 key
+        if [[ $key == "q" ]]; then
+            echo "Keyboard quit pressed"
+            kill -TERM "$$"
+            break
+        fi
+    done
+}
+
+kbd_listener &
+
+
 ########################################
 # Initial USB mount check
 ########################################
@@ -95,7 +119,7 @@ fi
 # Make sure previous socket is removed
 rm -f "$IPC_SOCKET"
 
-mpv --fs --loop "$INITIAL_VIDEO" --no-terminal --input-ipc-server="$IPC_SOCKET" &
+mpv --fs "$INITIAL_VIDEO" --no-terminal --input-ipc-server="$IPC_SOCKET" &
 MPV_PID=$!
 echo "Started mpv splash (PID $MPV_PID)"
 sleep 1
